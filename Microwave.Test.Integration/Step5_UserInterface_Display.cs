@@ -22,7 +22,7 @@ namespace Microwave.Test.Integration
         [SetUp]
         public void SetUp()
         {
-            _output = new Substitute.For(IOutput);
+            //_output = new Substitute.For(IOutput);
             
         }
     }
