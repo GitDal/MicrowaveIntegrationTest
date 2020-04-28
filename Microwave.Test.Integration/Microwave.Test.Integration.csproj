@@ -61,6 +61,8 @@
     <Compile Include="Step1_Display_Output.cs" />
     <Compile Include="Step3_PowerTube_Output.cs" />
     <Compile Include="Step4_CookController_Display_Timer_PowerTube.cs" />
+    <Compile Include="Step2_Light_Output.cs" />
+    <Compile Include="Step5_UserInterface_Display.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
