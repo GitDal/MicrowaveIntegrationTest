@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Microwave.Test.Integration
 {
-    public class Class1
+    [TestFixture]
+    class Step3_PowerTube_Output
     {
     }
 }
