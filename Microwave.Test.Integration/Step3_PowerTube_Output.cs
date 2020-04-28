@@ -18,8 +18,5 @@ namespace Microwave.Test.Integration
         {
             powerTube = new PowerTube(new Output());
         }
-
-        [Test]
-
     }
 }
