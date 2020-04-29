@@ -77,7 +77,7 @@ namespace Microwave.Test.Unit
             // wait longer than expiration
             Assert.That(pause.WaitOne(2100));
 
-            Assert.That(notifications, Is.EqualTo(1));
+            Assert.That(notifications, Is.EqualTo(2));
         }
 
         [Test]

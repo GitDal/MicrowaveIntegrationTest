@@ -45,13 +45,13 @@ namespace MicrowaveOvenClasses.Boundary
             // Do what I should
             --TimeRemaining;
 
+            TimerTick?.Invoke(this, EventArgs.Empty);
+
             if (TimeRemaining <= 0)
             {
                 Expire();
                 return;
             }
-
-            TimerTick?.Invoke(this, EventArgs.Empty);
         }
 
     }

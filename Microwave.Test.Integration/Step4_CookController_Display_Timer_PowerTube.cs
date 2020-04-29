@@ -164,7 +164,7 @@ namespace Microwave.Test.Integration
 
             Thread.Sleep(time*1000 + 500);
 
-            _display.Received(time-1).ShowTime(Arg.Any<int>(), Arg.Any<int>());
+            _display.Received(time).ShowTime(Arg.Any<int>(), Arg.Any<int>());
         }
 
         [TestCase(50, 1)]
@@ -200,13 +200,13 @@ namespace Microwave.Test.Integration
         [TestCase(50, -5)]
         [TestCase(50, -10)]
 
-        public void StartCooking_UnderOneSecond_DisplayReceivesNumberOfCallsFromCookController(int power, int time)
+        public void StartCooking_UnderOneSecond_DisplayReceivesOneCallFromCookController(int power, int time)
         {
             _tlm.StartCooking(power, time);
 
             Thread.Sleep(1500);
 
-            _display.DidNotReceive().ShowTime(Arg.Any<int>(), Arg.Any<int>());
+            _display.Received(1).ShowTime(Arg.Any<int>(), Arg.Any<int>());
         }
 
         [TestCase(50, 0)]
