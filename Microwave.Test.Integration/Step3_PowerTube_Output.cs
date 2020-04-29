@@ -49,7 +49,7 @@ namespace Microwave.Test.Integration
         #region TurnOnExceptionTests
 
         [TestCase(0)]
-        [TestCase(101)]
+        [TestCase(701)]
         public void TurnOn_IsOnIsFalse_PowerIsOutOfRange_ThrowsArgumentOutOfRangeExceptionAndOutputNotCalled(int power)
         {
             // Act + Assert:

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using MicrowaveOvenClasses.Boundary;
 using MicrowaveOvenClasses.Controllers;
 using MicrowaveOvenClasses.Interfaces;
@@ -9,7 +10,7 @@ using Timer = MicrowaveOvenClasses.Boundary.Timer;
 namespace Microwave.Test.Integration
 {
     [TestFixture]
-    public class Step4_CookController_Display_Timer_PowerTube
+    public class Step4_CookController_Display_PowerTube
     {
         private IOutput _output;
         private IUserInterface _ui;
@@ -29,11 +30,13 @@ namespace Microwave.Test.Integration
             _tlm = new CookController(_timer, _display, _powerTube, _ui);
         }
 
-        [TestCase(1,60)]
-        [TestCase(2, 60)]
-        [TestCase(50, 60)]
-        [TestCase(99, 60)]
-        [TestCase(100, 60)]
+        [TestCase(1,5)]
+        [TestCase(50, 5)]
+        [TestCase(100, 5)]
+        [TestCase(350, 5)]
+        [TestCase(650, 5)]
+        [TestCase(699, 5)]
+        [TestCase(700, 5)]
         public void StartCooking_CorrectPower_OutputReceivesFromPowerTube(int power, int time)
         {
             _tlm.StartCooking(power, time);
@@ -41,30 +44,63 @@ namespace Microwave.Test.Integration
             _output.Received().OutputLine(Arg.Is<string>(str => str == $"PowerTube works with {power}"));
         }
 
-        /*
-        [TestCase(50, 1)]
-        [TestCase(50, 30)]
-        [TestCase(50, 60)]
-        [TestCase(50, 90)]
-        [TestCase(50, 120)]
-        [TestCase(50, 125)]
-        public void StartCooking_CorrectPower_OutputReceivesFromDisplay(int power, int time)
+        [Test]
+        public void StartCooking_CorrectTimeAndOneTimeTick_OutputReceivesFromDisplay()
         {
-            int minutes = time / 60;
-            int seconds = time - (minutes * 60);
+            _timer.TimeRemaining.Returns(65); //One minute and 5 seconds
 
-            _tlm.StartCooking(power, time);
-            _timer.Start(time);
-            _output.Received().OutputLine(Arg.Is<string>(str => str == $"Display shows: {minutes:D2}:{seconds:D2}"));
-        }*/
+            _tlm.StartCooking(50, 66);
 
+            _timer.TimerTick += Raise.EventWith(this, EventArgs.Empty);
 
+            _output.Received(1).OutputLine($"Display shows: {1:D2}:{5:D2}");
+        }
 
-        [TestCase(0, 60)]
-        [TestCase(-1, 60)]
-        [TestCase(-100, 60)]
-        [TestCase(101, 60)]
-        [TestCase(150, 60)]
+        [Test]
+        public void TimeTick_CorrectTimeAndOneTimeTick_OutputReceivesFromDisplay()
+        {
+            _timer.TimeRemaining.Returns(65); //One minute and 5 seconds
+
+            _timer.TimerTick += Raise.EventWith(this, EventArgs.Empty);
+            
+            _output.Received(1).OutputLine($"Display shows: {1:D2}:{5:D2}");
+        }
+
+        [Test]
+        public void StartCooking_ZeroTimeOneTimeTick_OutputDoesNotReceiveFromDisplay()
+        {
+            _timer.TimeRemaining.Returns(0); //0 seconds
+
+            _tlm.StartCooking(50, 0);
+
+            _timer.TimerTick += Raise.EventWith(this, EventArgs.Empty);
+
+            _output.DidNotReceive().OutputLine($"Display shows: {1:D2}:{5:D2}");
+        }
+
+        [Test]
+        public void StartCooking_TimerExpired_OutputReceivesFromPowerTube()
+        {
+            _tlm.StartCooking(50, 120);
+
+            _timer.Expired += Raise.EventWith(this, EventArgs.Empty);
+
+            _output.Received(1).OutputLine($"PowerTube turned off");
+        }
+
+        [Test]
+        public void NoStartCooking_TimerExpired_OutputDoesNotReceiveFromPowerTube()
+        {
+            _timer.Expired += Raise.EventWith(this, EventArgs.Empty);
+
+            _output.DidNotReceive().OutputLine($"PowerTube turned off");
+        }
+
+        [TestCase(0, 5)]
+        [TestCase(-1, 5)]
+        [TestCase(-100, 5)]
+        [TestCase(701, 5)]
+        [TestCase(750, 5)]
         public void StartCooking_WrongPower_ThrowArgumentOutOfRangeException(int power, int time)
         {
             Assert.Throws<System.ArgumentOutOfRangeException>(() => _tlm.StartCooking(power, time));
@@ -118,42 +154,51 @@ namespace Microwave.Test.Integration
             _tlm = new CookController(_timer, _display, _powerTube, _ui);
         }
 
-        [TestCase(50, 1000)]
-        [TestCase(50, 2000)]
-        [TestCase(50, 3000)]
+        [TestCase(50, 1)]
+        [TestCase(50, 2)]
+        [TestCase(50, 3)]
 
         public void StartCooking_TimeOneSecondOrLonger_DisplayReceivesNumberOfCallsFromCookController(int power, int time)
         {
             _tlm.StartCooking(power, time);
 
-            Thread.Sleep(time + 500);
+            Thread.Sleep(time*1000 + 500);
 
-            _display.Received(time/1000).ShowTime(Arg.Any<int>(), Arg.Any<int>());
-            _powerTube.Received(1).TurnOff();
-            _ui.Received(1).CookingIsDone();
+            _display.Received(time-1).ShowTime(Arg.Any<int>(), Arg.Any<int>());
         }
 
-        [TestCase(50, 1000)]
-        [TestCase(50, 2000)]
-        [TestCase(50, 3000)]
+        [TestCase(50, 1)]
+        [TestCase(50, 2)]
+        [TestCase(50, 3)]
 
-        public void StartCooking_TimeOneSecondOrLonger_(int power, int time)
+        public void StartCooking_TimeOneSecondOrLonger_PowerTubeTurnOffOnce(int power, int time)
         {
             _tlm.StartCooking(power, time);
 
-            Thread.Sleep(time + 500);
+            Thread.Sleep(time*1000 + 500);
 
             _powerTube.Received(1).TurnOff();
+        }
+
+
+        [TestCase(50, 1)]
+        [TestCase(50, 2)]
+        [TestCase(50, 3)]
+
+        public void StartCooking_TimeOneSecondOrLonger_UICookingIsDoneOnce(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(time*1000 + 500);
+
             _ui.Received(1).CookingIsDone();
         }
 
-        [TestCase(50, 999)]
-        [TestCase(50, 500)]
-        [TestCase(50, 1)]
+
         [TestCase(50, 0)]
         [TestCase(50, -1)]
-        [TestCase(50, -1000)]
-        [TestCase(50, -2000)]
+        [TestCase(50, -5)]
+        [TestCase(50, -10)]
 
         public void StartCooking_UnderOneSecond_DisplayReceivesNumberOfCallsFromCookController(int power, int time)
         {
@@ -161,19 +206,59 @@ namespace Microwave.Test.Integration
 
             Thread.Sleep(1500);
 
-            _display.Received(1).ShowTime(Arg.Any<int>(), Arg.Any<int>());
+            _display.DidNotReceive().ShowTime(Arg.Any<int>(), Arg.Any<int>());
+        }
+
+        [TestCase(50, 0)]
+        [TestCase(50, -1)]
+        [TestCase(50, -5)]
+        [TestCase(50, -10)]
+
+        public void StartCooking_UnderOneSecond_PowerTubeTurnedOffOnce(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(1500);
+
             _powerTube.Received(1).TurnOff();
+        }
+
+        [TestCase(50, 0)]
+        [TestCase(50, -1)]
+        [TestCase(50, -5)]
+        [TestCase(50, -10)]
+
+        public void StartCooking_UnderOneSecond_UICookingIsDoneOnce(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(1500);
+
             _ui.Received(1).CookingIsDone();
         }
 
+        [Test]
+        public void StopCooking_AfterTwoSeconds_DisplayReceivedTwoCall()
+        {
+            _tlm.StartCooking(50, 3);
+            
+            Thread.Sleep(2100);
 
+            _tlm.Stop();
 
+            _display.Received(2).ShowTime(Arg.Any<int>(),Arg.Any<int>());
+        }
+
+        [Test]
+        public void StopCooking_AfterTwoSeconds_PowerTubeTurnedOff()
+        {
+            _tlm.StartCooking(50, 3);
+
+            Thread.Sleep(2100);
+
+            _tlm.Stop();
+
+            _powerTube.Received(1).TurnOff();
+        }
     }
 }
-
-/*
-[TestCase(50, 30)]
-[TestCase(50, 60)]
-[TestCase(50, 90)]
-[TestCase(50, 120)]
-[TestCase(50, 125)] */
