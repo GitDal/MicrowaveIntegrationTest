@@ -161,6 +161,53 @@ namespace Microwave.Test.Integration
 
             _output.Received().OutputLine(Arg.Is<string>(str => str.Contains($"PowerTube works with {powerUsed}")));
         }
+        
+        [Test]
+        public void Cooking_CookingStartedCancelButtonPressed_PowerTubeOutputOff()
+        {
+            _tlmPowerButton.Press();
+            _tlmTimeButton.Press();
+            _tlmStartCancelButton.Press();
+            _tlmStartCancelButton.Press();
 
+            _output.Received().OutputLine(Arg.Is<string>(str => str.Contains($"PowerTube turned off")));
+        }
+
+        [Test]
+        public void Cooking_CookingStartedThenDoorOpened_PowerTubeOutputOff()
+        {
+            _tlmPowerButton.Press();
+            _tlmTimeButton.Press();
+            _tlmStartCancelButton.Press();
+            _tlmDoor.Open();
+
+            _output.Received().OutputLine(Arg.Is<string>(str => str.Contains($"PowerTube turned off")));
+        }
+
+        [Test]
+        public void Cooking_CookingStartedDoorOpenedThenClosed_PowerTubeDoesNotTurnOn()
+        {
+            _tlmPowerButton.Press();
+            _tlmTimeButton.Press();
+            _tlmStartCancelButton.Press();
+            _tlmDoor.Open();
+            _output.ClearReceivedCalls();
+            _tlmDoor.Close();
+
+            _output.DidNotReceive().OutputLine(Arg.Is<string>(str => str.Contains($"PowerTube works with")));
+        }
+
+        /*
+        [Test]
+        public void Cooking_CookingAndWaitingForTimerToExpire_PowerTubeOutputOff()
+        {
+            _tlmPowerButton.Press();
+            _tlmTimeButton.Press();
+            _tlmStartCancelButton.Press();
+            _timer.Expired += Raise.EventWith(this, EventArgs.Empty);
+
+            _output.DidNotReceive().OutputLine(Arg.Is<string>(str => str.Contains($"PowerTube turned off")));
+            //_output.Received().OutputLine(Arg.Is<string>(str => str.Contains($"PowerTube turned off")));
+        }*/
     }
 }
