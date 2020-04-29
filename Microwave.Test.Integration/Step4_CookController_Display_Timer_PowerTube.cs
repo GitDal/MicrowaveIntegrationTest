@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MicrowaveOvenClasses.Boundary;
+﻿using MicrowaveOvenClasses.Boundary;
 using MicrowaveOvenClasses.Controllers;
 using MicrowaveOvenClasses.Interfaces;
 using NSubstitute;
@@ -17,7 +12,7 @@ namespace Microwave.Test.Integration
         private IOutput _output;
         private IUserInterface _ui;
         private ITimer _timer;
-        private IDisplay _display;
+        private Display _display;
         private CookController _tlm;
         private PowerTube _powerTube;
 
@@ -27,7 +22,7 @@ namespace Microwave.Test.Integration
             _output = Substitute.For<IOutput>();
             _ui = Substitute.For<IUserInterface>();
             _timer = Substitute.For<ITimer>();
-            _display = Substitute.For<IDisplay>();
+            _display = new Display(_output);
             _powerTube = new PowerTube(_output);
             _tlm = new CookController(_timer, _display, _powerTube, _ui);
         }
@@ -43,6 +38,25 @@ namespace Microwave.Test.Integration
 
             _output.Received().OutputLine(Arg.Is<string>(str => str == $"PowerTube works with {power}"));
         }
+
+        /*
+        [TestCase(50, 1)]
+        [TestCase(50, 30)]
+        [TestCase(50, 60)]
+        [TestCase(50, 90)]
+        [TestCase(50, 120)]
+        [TestCase(50, 125)]
+        public void StartCooking_CorrectPower_OutputReceivesFromDisplay(int power, int time)
+        {
+            int minutes = time / 60;
+            int seconds = time - (minutes * 60);
+
+            _tlm.StartCooking(power, time);
+            _timer.Start(time);
+            _output.Received().OutputLine(Arg.Is<string>(str => str == $"Display shows: {minutes:D2}:{seconds:D2}"));
+        }*/
+
+
 
         [TestCase(0, 60)]
         [TestCase(-1, 60)]
@@ -78,4 +92,55 @@ namespace Microwave.Test.Integration
         }
 
     }
+
+    [TestFixture]
+    public class Step4_CookController_Timer
+    {
+        private IOutput _output;
+        private IPowerTube _powerTube;
+        private IUserInterface _ui;
+        private IDisplay _display;
+        private Timer _timer;
+        private CookController _tlm;
+        
+
+        [SetUp]
+        public void Setup()
+        {
+            _output = Substitute.For<IOutput>();
+            _ui = Substitute.For<IUserInterface>();
+            _display = Substitute.For<IDisplay>();
+            _powerTube = Substitute.For<IPowerTube>();
+
+            _timer = new Timer();
+            _tlm = new CookController(_timer, _display, _powerTube, _ui);
+        }
+
+        [TestCase(50, 2)]
+        [TestCase(50, 5)]
+        [TestCase(50, 10)]
+        [TestCase(50, 13)]
+        public void StartCooking_CorrectPower_DisplayReceivesNumberOfCallsFromCookController(int power, int time)
+        {
+            //int minutes = time / 60;
+            //int seconds = time % 60;
+
+            _tlm.StartCooking(power, time);
+            
+            Assert.True(true);
+
+            //_display.Received().ShowTime(Arg.Any<int>(),Arg.Any<int>());
+            //_display.Received(time).ShowTime(Arg.Any<int>(), Arg.Any<int>());
+        }
+
+
+
+    }
 }
+
+/*
+[TestCase(50, 30)]
+[TestCase(50, 60)]
+[TestCase(50, 90)]
+[TestCase(50, 120)]
+[TestCase(50, 125)] */
