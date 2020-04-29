@@ -60,7 +60,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Step1_Display_Output.cs" />
     <Compile Include="Step3_PowerTube_Output.cs" />
-    <Compile Include="Step4_CookController_Display_Timer_PowerTube.cs" />
+    <Compile Include="Step4b_CookController_Timer.cs" />
+    <Compile Include="Step4a_CookController_Display_PowerTube.cs" />
     <Compile Include="Step2_Light_Output.cs" />
     <Compile Include="Step5_UserInterface_Display.cs" />
     <Compile Include="Step6_UserInterface_Light_CookController.cs" />
