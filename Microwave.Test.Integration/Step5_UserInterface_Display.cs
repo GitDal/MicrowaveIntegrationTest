@@ -37,9 +37,13 @@ namespace Microwave.Test.Integration
 
             // Included.
             _display = new Display(_output);
+
+            // Top level module.
             _tlm = new UserInterface(_powerButton, _timeButton, _startCancelButton, _door, _display, _light, _cookController);
         }
 
+        // Similar tests to UserInterface unit tests.
+        // This time using real a display class and asserting on the output substitute.
         [Test]
         public void Ready_DoorOpenClose_Ready_PowerIs50()
         {
@@ -88,7 +92,6 @@ namespace Microwave.Test.Integration
             _output.Received(1).OutputLine(Arg.Is<string>("Display cleared"));
         }
 
-        
         [Test]
         public void SetPower_DoorOpened_DisplayCleared()
         {
@@ -117,7 +120,6 @@ namespace Microwave.Test.Integration
             _output.Received(1).OutputLine(Arg.Is<string>("Display shows: 02:00"));
         }
         
-        
         [Test]
         public void SetTime_DoorOpened_DisplayCleared()
         {
@@ -128,7 +130,6 @@ namespace Microwave.Test.Integration
             _output.Received(1).OutputLine(Arg.Is<string>("Display cleared"));
         }
         
-
         [Test]
         public void Cooking_CookingIsDone_ClearDisplay()
         {

@@ -65,6 +65,7 @@
     <Compile Include="Step5_UserInterface_Display.cs" />
     <Compile Include="Step6_UserInterface_Light_CookController.cs" />
     <Compile Include="UtilityMethods\TextWriterHelper.cs" />
+    <Compile Include="Step7_Door_Buttons_UserInterface.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
