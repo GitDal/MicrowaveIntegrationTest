@@ -63,6 +63,8 @@
     <Compile Include="Step4_CookController_Display_Timer_PowerTube.cs" />
     <Compile Include="Step2_Light_Output.cs" />
     <Compile Include="Step5_UserInterface_Display.cs" />
+    <Compile Include="Step6_UserInterface_Light_CookController.cs" />
+    <Compile Include="UtilityMethods\TextWriterHelper.cs" />
     <Compile Include="Step7_Door_Buttons_UserInterface.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +76,7 @@
       <Name>MicrowaveOvenClasses</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
