@@ -17,7 +17,6 @@ namespace Microwave.Test.Integration
         private IDisplay _tlm;
         private IOutput _output;
         private StringWriter textWriter;
-        private StringReader textReader;
 
         [SetUp]
         public void Setup()
@@ -39,21 +38,23 @@ namespace Microwave.Test.Integration
         [TestCase(-1, -1)]
         [TestCase(0, 0)]
         [TestCase(1,1)]
-        public void ShowTime_GivenMinutesAndSeconds_OutputIsCalledCorrectly(int mins, int secs)
+        public void ShowTime_GivenMinutesAndSeconds_OutputIsCalledCorrectly(int minutes, int seconds)
         {
             // Act:
-            _tlm.ShowTime(mins, secs);
+            _tlm.ShowTime(minutes, seconds);
 
             // Assert:
             //Assert.That(textWriter.ToString(),Is.EqualTo($"Display shows: {mins:D2}:{secs:D2}") );
 
             Assert.Multiple((() =>
             {
-                Assert.That(textWriter.ToString(), Contains.Substring(mins.ToString("D2")));
-                Assert.That(textWriter.ToString(), Contains.Substring(secs.ToString("D2")));
+                Assert.That(textWriter.ToString(), Contains.Substring(minutes.ToString("D2")));
+                Assert.That(textWriter.ToString(), Contains.Substring(seconds.ToString("D2")));
             }));
         }
 
+        [TestCase(-1)]
+        [TestCase(0)]
         [TestCase(1)]
         public void ShowPower_GivenPower_OutputIsCalledCorrectly(int power)
         {
@@ -62,6 +63,16 @@ namespace Microwave.Test.Integration
 
             Assert.That(textWriter.ToString(), Contains.Substring(power.ToString()));
         }
+
+        [TestCase(1)]
+        public void Clear_OutputIsCalledCorrectly(int power)
+        {
+            // Act:
+            _tlm.Clear();
+
+            Assert.That(textWriter.ToString(), Contains.Substring("Display cleared"));
+        }
+
 
     }
 }
