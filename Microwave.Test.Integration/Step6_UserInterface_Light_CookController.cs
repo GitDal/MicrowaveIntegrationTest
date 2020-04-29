@@ -42,17 +42,118 @@ namespace Microwave.Test.Integration
             _powerTube = new PowerTube(_output);
             _cookController = new CookController(_timer, _display, _powerTube);
             _tlm = new UserInterface(_powerButton, _timeButton, _startCancelButton, _door, _display, _light, _cookController);
+            ((CookController)_cookController).UI = _tlm; // Property injection
         }
+
+        /* STATES: { READY, SETPOWER, SETTIME, COOKING, DOOROPEN } */
 
         [Test]
         public void OnPowerPressed_StateREADY_OutputIsCalledCorrectly()
         {
             // myState = State.READY (default)
+            int powerLevel = 50; //default
 
-            //_tlm.OnPowerPressed();
+            // Act:
+            _tlm.OnPowerPressed(new object(), new EventArgs());
 
-            Assert.True(true);
+            // Assert:
+            _output.Received().OutputLine(Arg.Is<string>(str => 
+                str.Contains(powerLevel.ToString()) 
+                && str.Contains("W"))
+            );
         }
+
+        //(powerLevel >= 700 ? 50 : powerLevel + 50)
+        [TestCase(1, 100)]
+        [TestCase(13, 700)]
+        [TestCase(14, 50)]
+        public void OnPowerPressed_StateSETPOWER_OutputShowsCorrectPower(int timesPressed, int expectedPowerLevel)
+        {
+            // Arrange:
+            _tlm.OnPowerPressed(new object(), new EventArgs()); //--> myState = State.SETPOWER
+
+            for(int i = 0; i < timesPressed-1; i++)
+                _tlm.OnPowerPressed(new object(), new EventArgs()); // Press button timesPressed-times
+
+            _output.ClearReceivedCalls(); //Clear received calls (power is still correct)
+
+            // Act:
+            _tlm.OnPowerPressed(new object(), new EventArgs());
+
+            // Assert:
+            _output.Received().OutputLine(Arg.Is<string>(str => 
+                str.Contains(expectedPowerLevel.ToString())));
+        }
+
+        [Test]
+        public void OnTimePressed_StateSETPOWER_OutputShowsCorrectTime()
+        {
+            // Arrange:
+            _tlm.OnPowerPressed(new object(), new EventArgs()); //--> myState = State.SETPOWER
+            int expectedTimeInMins = 1; //default
+
+            // Act:
+            _tlm.OnTimePressed(new object(), new EventArgs());
+
+            // Assert:
+            _output.Received(1).OutputLine(Arg.Is<string>(str => 
+                str.Contains(expectedTimeInMins.ToString("D2")) 
+                && str.Contains(0.ToString("D2"))));
+        }
+
+        [TestCase(1, 2)]
+        [TestCase(10, 11)]
+        [TestCase(1000, 1001)]
+        public void OnTimePressed_StateSETTIMEAndTimeIsOne_OutputShowsCorrectTime(int timePressed, int expectedTimeInMins)
+        {
+            // Arrange:
+            _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
+            _tlm.OnTimePressed(new object(), new EventArgs()); //--> state = State.SETTIME
+
+            for (int i = 0; i < timePressed-1; i++)
+                _tlm.OnTimePressed(new object(), new EventArgs());
+            _output.ClearReceivedCalls(); // Clear output
+
+            // Act:
+            _tlm.OnTimePressed(new object(), new EventArgs()); //Newest output
+
+            // Assert:
+            _output.Received(1).OutputLine(Arg.Is<string>(str =>
+                str.Contains(expectedTimeInMins.ToString("D2"))
+                && str.Contains(0.ToString("D2"))));
+        }
+
+        [Test]
+        public void OnStartCancelPressed_StateSETPOWER_OutputShowsDisplayIsCleared()
+        {
+            // Arrange:
+            _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
+            _output.ClearReceivedCalls(); // Clear output
+
+            // Act:
+            _tlm.OnStartCancelPressed(new object(), new EventArgs()); //--> state = State.READY
+
+            // Assert:
+            _output.Received().OutputLine(Arg.Is<string>(str =>
+                str.ToLower().Contains("cleared")));
+        }
+
+        [Test]
+        public void OnStartCancelPressed_StateSETTIME_OutputShowsTurnOnLight()
+        {
+            // Arrange:
+            _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
+            _tlm.OnTimePressed(new object(), new EventArgs()); //--> state = State.SETTIME
+            _output.ClearReceivedCalls(); // Clear output
+
+            // Act:
+            _tlm.OnStartCancelPressed(new object(), new EventArgs()); //--> state = State.COOKING
+
+            // Assert:
+            _output.Received().OutputLine(Arg.Is<string>(str =>
+                str.ToLower().Contains("on")));
+        }
+
 
 
     }
