@@ -146,5 +146,21 @@ namespace Microwave.Test.Integration
             _output.Received(1).OutputLine(Arg.Is<string>("Display cleared"));
         }
 
+        [TestCase(1, 50)]
+        [TestCase(2, 100)]
+        [TestCase(5,250)]
+        [TestCase(14, 700)]
+        public void Cooking_CookingStarted_PowerTubeOutputCorrect(int powerPresses, int powerUsed)
+        {
+            for (int i = 0; i < powerPresses; i++)
+            {
+                _tlmPowerButton.Press();
+            }
+            _tlmTimeButton.Press();
+            _tlmStartCancelButton.Press();
+
+            _output.Received().OutputLine(Arg.Is<string>(str => str.Contains($"PowerTube works with {powerUsed}")));
+        }
+
     }
 }
