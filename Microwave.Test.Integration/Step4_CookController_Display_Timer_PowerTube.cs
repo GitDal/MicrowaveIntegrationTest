@@ -127,7 +127,7 @@ namespace Microwave.Test.Integration
 
             _tlm.StartCooking(power, time);
             
-            
+            Assert.True(true);
 
             //_display.Received().ShowTime(Arg.Any<int>(),Arg.Any<int>());
             //_display.Received(time).ShowTime(Arg.Any<int>(), Arg.Any<int>());
