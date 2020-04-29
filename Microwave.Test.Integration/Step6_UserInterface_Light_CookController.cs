@@ -48,7 +48,7 @@ namespace Microwave.Test.Integration
         /* STATES: { READY, SETPOWER, SETTIME, COOKING, DOOROPEN } */
 
         [Test]
-        public void OnPowerPressed_StateREADY_OutputIsCalledCorrectly()
+        public void OnPowerPressed_StateIsREADY_OutputIsCalledCorrectly()
         {
             // myState = State.READY (default)
             int powerLevel = 50; //default
@@ -67,7 +67,7 @@ namespace Microwave.Test.Integration
         [TestCase(1, 100)]
         [TestCase(13, 700)]
         [TestCase(14, 50)]
-        public void OnPowerPressed_StateSETPOWER_OutputShowsCorrectPower(int timesPressed, int expectedPowerLevel)
+        public void OnPowerPressed_StateIsSETPOWER_OutputShowsCorrectPower(int timesPressed, int expectedPowerLevel)
         {
             // Arrange:
             _tlm.OnPowerPressed(new object(), new EventArgs()); //--> myState = State.SETPOWER
@@ -82,11 +82,12 @@ namespace Microwave.Test.Integration
 
             // Assert:
             _output.Received().OutputLine(Arg.Is<string>(str => 
-                str.Contains(expectedPowerLevel.ToString())));
+                str.Contains(expectedPowerLevel.ToString()))
+            );
         }
 
         [Test]
-        public void OnTimePressed_StateSETPOWER_OutputShowsCorrectTime()
+        public void OnTimePressed_StateIsSETPOWER_OutputShowsCorrectTime()
         {
             // Arrange:
             _tlm.OnPowerPressed(new object(), new EventArgs()); //--> myState = State.SETPOWER
@@ -98,13 +99,14 @@ namespace Microwave.Test.Integration
             // Assert:
             _output.Received(1).OutputLine(Arg.Is<string>(str => 
                 str.Contains(expectedTimeInMins.ToString("D2")) 
-                && str.Contains(0.ToString("D2"))));
+                && str.Contains(0.ToString("D2")))
+            );
         }
 
         [TestCase(1, 2)]
         [TestCase(10, 11)]
         [TestCase(1000, 1001)]
-        public void OnTimePressed_StateSETTIMEAndTimeIsOne_OutputShowsCorrectTime(int timePressed, int expectedTimeInMins)
+        public void OnTimePressed_StateIsSETTIMEAndTimeIsOne_OutputShowsCorrectTime(int timePressed, int expectedTimeInMins)
         {
             // Arrange:
             _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
@@ -112,6 +114,7 @@ namespace Microwave.Test.Integration
 
             for (int i = 0; i < timePressed-1; i++)
                 _tlm.OnTimePressed(new object(), new EventArgs());
+
             _output.ClearReceivedCalls(); // Clear output
 
             // Act:
@@ -120,11 +123,12 @@ namespace Microwave.Test.Integration
             // Assert:
             _output.Received(1).OutputLine(Arg.Is<string>(str =>
                 str.Contains(expectedTimeInMins.ToString("D2"))
-                && str.Contains(0.ToString("D2"))));
+                && str.Contains(0.ToString("D2")))
+            );
         }
 
         [Test]
-        public void OnStartCancelPressed_StateSETPOWER_OutputShowsDisplayIsCleared()
+        public void OnStartCancelPressed_StateIsSETPOWER_OutputShowsDisplayIsCleared()
         {
             // Arrange:
             _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
@@ -135,12 +139,15 @@ namespace Microwave.Test.Integration
 
             // Assert:
             _output.Received().OutputLine(Arg.Is<string>(str =>
-                str.ToLower().Contains("cleared")));
+                str.ToLower().Contains("cleared"))
+            );
         }
 
         [Test]
-        public void OnStartCancelPressed_StateSETTIME_OutputShowsTurnOnLight()
+        public void OnStartCancelPressed_StateIsSETTIME_OutputShowsLightIsOnAndPowerTubeIsOn()
         {
+            int powerLevel = 50; //default
+
             // Arrange:
             _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
             _tlm.OnTimePressed(new object(), new EventArgs()); //--> state = State.SETTIME
@@ -150,11 +157,167 @@ namespace Microwave.Test.Integration
             _tlm.OnStartCancelPressed(new object(), new EventArgs()); //--> state = State.COOKING
 
             // Assert:
-            _output.Received().OutputLine(Arg.Is<string>(str =>
-                str.ToLower().Contains("on")));
+            Assert.Multiple((() =>
+            {
+                _output.Received().OutputLine(Arg.Is<string>(str =>
+                    str.ToLower().Contains("on")));
+
+                _output.Received().OutputLine(Arg.Is<string>(str =>
+                    str.ToLower().Contains(powerLevel.ToString()))
+                );
+            }));
+            
         }
 
+        [Test]
+        public void OnStartCancelPressed_StateIsCOOKING_OutputShowsPowerTubeOffLightOffAndDisplayClear()
+        {
+            // Arrange:
+            _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
+            _tlm.OnTimePressed(new object(), new EventArgs()); //--> state = State.SETTIME
+            _tlm.OnStartCancelPressed(new object(), new EventArgs()); //--> state = State.COOKING
+            _output.ClearReceivedCalls(); // Clear output
 
+            // Act:
+            _tlm.OnStartCancelPressed(new object(), new EventArgs()); //--> state = State.READY
+
+            // Assert:
+            Assert.Multiple((() =>
+            {
+                _output.Received().OutputLine(Arg.Is<string>(str =>
+                    str.ToLower().Contains("powertube")
+                    && str.ToLower().Contains("off"))
+                );
+
+                _output.Received().OutputLine(Arg.Is<string>(str =>
+                    str.ToLower().Contains("light") && 
+                    str.ToLower().Contains("off"))
+                );
+
+                _output.Received().OutputLine(Arg.Is<string>(str =>
+                    str.ToLower().Contains("display") &&
+                    str.ToLower().Contains("clear"))
+                );
+            }));
+        }
+
+        [Test]
+        public void OnDoorOpened_StateIsREADY_OutputShowsLightOn()
+        {
+            // Act:
+            _tlm.OnDoorOpened(new object(), new EventArgs()); //--> state = state.DOOROPEN
+
+            // Assert:
+            _output.Received(1).OutputLine(Arg.Is<string>(str => 
+                str.ToLower().Contains("light") 
+                && str.ToLower().Contains("on"))
+            );
+        }
+
+        [Test]
+        public void OnDoorOpened_StateIsSETPOWER_OutputShowsLightOnAndDisplayClear()
+        {
+            // Arrange:
+            _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
+            _tlm.OnTimePressed(new object(), new EventArgs()); //--> state = State.SETTIME
+            _output.ClearReceivedCalls(); // Clear output
+
+            // Act:
+            _tlm.OnDoorOpened(new object(), new EventArgs()); //--> state = state.DOOROPEN
+
+            // Assert:
+            Assert.Multiple((() =>
+            {
+                _output.Received(1).OutputLine(Arg.Is<string>(str =>
+                    str.ToLower().Contains("light")
+                    && str.ToLower().Contains("on"))
+                );
+
+                _output.Received(1).OutputLine(Arg.Is<string>(str =>
+                    str.ToLower().Contains("display")
+                    && str.ToLower().Contains("clear"))
+                );
+            }));
+        }
+
+        [Test]
+        public void OnDoorOpened_StateIsSETTIME_OutputShowsLightOnAndDisplayClear()
+        {
+            // Arrange:
+            _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
+            _tlm.OnTimePressed(new object(), new EventArgs()); //--> state = State.SETTIME
+            _output.ClearReceivedCalls(); // Clear output
+
+            // Act:
+            _tlm.OnDoorOpened(new object(), new EventArgs()); //--> state = state.DOOROPEN
+
+            // Assert:
+            Assert.Multiple((() =>
+            {
+                _output.Received(1).OutputLine(Arg.Is<string>(str =>
+                    str.ToLower().Contains("light")
+                    && str.ToLower().Contains("on"))
+                );
+
+                _output.Received(1).OutputLine(Arg.Is<string>(str =>
+                    str.ToLower().Contains("display")
+                    && str.ToLower().Contains("clear"))
+                );
+            }));
+        }
+
+        [Test]
+        public void OnDoorOpened_StateIsCOOKING_OutputShowsPowerTubeOff()
+        {
+            // Arrange:
+            _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
+            _tlm.OnTimePressed(new object(), new EventArgs()); //--> state = State.SETTIME
+            _tlm.OnStartCancelPressed(new object(), new EventArgs()); //--> state = State.COOKING
+            _output.ClearReceivedCalls(); // Clear output
+
+            // Act:
+            _tlm.OnDoorOpened(new object(), new EventArgs()); //--> state = State.READY
+
+            // Assert:
+            _output.Received().OutputLine(Arg.Is<string>(str =>
+                str.ToLower().Contains("powertube")
+                && str.ToLower().Contains("off")));
+        }
+
+        [Test]
+        public void OnDoorClosed_StateIsDOOROPEN_OutputShowsLightIsOff()
+        {
+            // Arrange:
+            _tlm.OnDoorOpened(new object(), new EventArgs()); //--> state = State.DOOROPEN
+            _output.ClearReceivedCalls(); // Clear output
+
+            // Act:
+            _tlm.OnDoorClosed(new object(), new EventArgs()); //--> state = state.DOORCLOSED
+
+            // Assert:
+            _output.Received(1).OutputLine(Arg.Is<string>(str =>
+                str.ToLower().Contains("light")
+                && str.ToLower().Contains("off"))
+            );
+        }
+
+        [Test]
+        public void CookingIsDone_StateIsCOOKING_OutputShowsDisplayClearAndLightOff()
+        {
+            // Arrange:
+            _tlm.OnPowerPressed(new object(), new EventArgs()); //--> state = State.SETPOWER
+            _tlm.OnTimePressed(new object(), new EventArgs()); //--> state = State.SETTIME
+            _tlm.OnStartCancelPressed(new object(), new EventArgs()); //--> state = State.COOKING
+            _output.ClearReceivedCalls(); // Clear output
+
+            // Act:
+            _tlm.CookingIsDone();
+
+            // Assert:
+            _output.Received().OutputLine(Arg.Is<string>(str =>
+                str.ToLower().Contains("display")
+                && str.ToLower().Contains("clear")));
+        }
 
     }
 }
