@@ -1,8 +1,10 @@
-﻿using MicrowaveOvenClasses.Boundary;
+﻿using System.Threading;
+using MicrowaveOvenClasses.Boundary;
 using MicrowaveOvenClasses.Controllers;
 using MicrowaveOvenClasses.Interfaces;
 using NSubstitute;
 using NUnit.Framework;
+using Timer = MicrowaveOvenClasses.Boundary.Timer;
 
 namespace Microwave.Test.Integration
 {
@@ -116,31 +118,123 @@ namespace Microwave.Test.Integration
             _tlm = new CookController(_timer, _display, _powerTube, _ui);
         }
 
-        [TestCase(50, 2)]
-        [TestCase(50, 5)]
-        [TestCase(50, 10)]
-        [TestCase(50, 13)]
-        public void StartCooking_CorrectPower_DisplayReceivesNumberOfCallsFromCookController(int power, int time)
+        [TestCase(50, 1000)]
+        [TestCase(50, 2000)]
+        [TestCase(50, 3000)]
+
+        public void StartCooking_TimeOneSecondOrLonger_DisplayReceivesNumberOfCallsFromCookController(int power, int time)
         {
-            //int minutes = time / 60;
-            //int seconds = time % 60;
-
             _tlm.StartCooking(power, time);
-            
-            Assert.True(true);
 
-            //_display.Received().ShowTime(Arg.Any<int>(),Arg.Any<int>());
-            //_display.Received(time).ShowTime(Arg.Any<int>(), Arg.Any<int>());
+            Thread.Sleep(time + 500);
+
+            _display.Received(time/1000).ShowTime(Arg.Any<int>(), Arg.Any<int>());
+        }
+
+        [TestCase(50, 1000)]
+        [TestCase(50, 2000)]
+        [TestCase(50, 3000)]
+
+        public void StartCooking_TimeOneSecondOrLonger_PowerTubeTurnOffOnce(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(time + 500);
+
+            _powerTube.Received(1).TurnOff();
+        }
+
+
+        [TestCase(50, 1000)]
+        [TestCase(50, 2000)]
+        [TestCase(50, 3000)]
+
+        public void StartCooking_TimeOneSecondOrLonger_UICookingIsDoneOnce(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(time + 500);
+
+            _ui.Received(1).CookingIsDone();
+        }
+
+
+        [TestCase(50, 999)]
+        [TestCase(50, 500)]
+        [TestCase(50, 1)]
+        [TestCase(50, 0)]
+        [TestCase(50, -1)]
+        [TestCase(50, -1000)]
+        [TestCase(50, -2000)]
+
+        public void StartCooking_UnderOneSecond_DisplayReceivesNumberOfCallsFromCookController(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(1500);
+
+            _display.Received(1).ShowTime(Arg.Any<int>(), Arg.Any<int>());
+        }
+
+        [TestCase(50, 999)]
+        [TestCase(50, 500)]
+        [TestCase(50, 1)]
+        [TestCase(50, 0)]
+        [TestCase(50, -1)]
+        [TestCase(50, -1000)]
+        [TestCase(50, -2000)]
+
+        public void StartCooking_UnderOneSecond_PowerTubeTurnedOffOnce(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(1500);
+
+            _powerTube.Received(1).TurnOff();
+        }
+
+        [TestCase(50, 999)]
+        [TestCase(50, 500)]
+        [TestCase(50, 1)]
+        [TestCase(50, 0)]
+        [TestCase(50, -1)]
+        [TestCase(50, -1000)]
+        [TestCase(50, -2000)]
+
+        public void StartCooking_UnderOneSecond_UICookingIsDoneOnce(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(1500);
+
+            _ui.Received(1).CookingIsDone();
+        }
+
+        [Test]
+        public void StopCooking_AfterTwoSeconds_DisplayReceivedTwoCall()
+        {
+            _tlm.StartCooking(50, 3000);
+            
+            Thread.Sleep(2100);
+
+            _tlm.Stop();
+
+            _display.Received(2).ShowTime(Arg.Any<int>(),Arg.Any<int>());
+        }
+
+        [Test]
+        public void StopCooking_AfterTwoSeconds_PowerTubeTurnedOff()
+        {
+            _tlm.StartCooking(50, 3000);
+
+            Thread.Sleep(2100);
+
+            _tlm.Stop();
+
+            _powerTube.Received(1).TurnOff();
         }
 
 
 
     }
 }
-
-/*
-[TestCase(50, 30)]
-[TestCase(50, 60)]
-[TestCase(50, 90)]
-[TestCase(50, 120)]
-[TestCase(50, 125)] */

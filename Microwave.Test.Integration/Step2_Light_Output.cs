@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microwave.Test.Integration.UtilityMethods;
 using MicrowaveOvenClasses.Boundary;
 using MicrowaveOvenClasses.Interfaces;
 using NSubstitute;
@@ -49,7 +50,7 @@ namespace Microwave.Test.Integration
         {
             // Arrange:
             _lmt.TurnOn(); // IsOn = true
-            ClearTextWriter(textWriter); // Clear all output
+            TextWriterHelper.ClearTextWriter(textWriter); // Clear all output
 
             // Act:
             _lmt.TurnOn();
@@ -72,21 +73,13 @@ namespace Microwave.Test.Integration
         {
             // Arrange:
             _lmt.TurnOn(); // IsOn = true
-            ClearTextWriter(textWriter); // Clear all output
+            TextWriterHelper.ClearTextWriter(textWriter); // Clear all output
 
             // Act:
             _lmt.TurnOff();
 
             // Assert:
             Assert.That(textWriter.ToString(), Contains.Substring("off")); // Nothing happened (still empty console-output)
-        }
-
-
-        // Utility method
-        private void ClearTextWriter(StringWriter tr)
-        {
-            StringBuilder sb = tr.GetStringBuilder();
-            sb.Remove(0, sb.Length);
         }
     }
 }
