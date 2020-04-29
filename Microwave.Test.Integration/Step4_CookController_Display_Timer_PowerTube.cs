@@ -10,7 +10,7 @@ using Timer = MicrowaveOvenClasses.Boundary.Timer;
 namespace Microwave.Test.Integration
 {
     [TestFixture]
-    public class Step4_CookController_Display_Timer_PowerTube
+    public class Step4_CookController_Display_PowerTube
     {
         private IOutput _output;
         private IUserInterface _ui;
@@ -31,10 +31,12 @@ namespace Microwave.Test.Integration
         }
 
         [TestCase(1,5)]
-        [TestCase(2, 5)]
         [TestCase(50, 5)]
-        [TestCase(99, 5)]
         [TestCase(100, 5)]
+        [TestCase(350, 5)]
+        [TestCase(650, 5)]
+        [TestCase(699, 5)]
+        [TestCase(700, 5)]
         public void StartCooking_CorrectPower_OutputReceivesFromPowerTube(int power, int time)
         {
             _tlm.StartCooking(power, time);
@@ -94,11 +96,11 @@ namespace Microwave.Test.Integration
             _output.DidNotReceive().OutputLine($"PowerTube turned off");
         }
 
-        [TestCase(0, 5000)]
-        [TestCase(-1, 5000)]
-        [TestCase(-100, 5000)]
-        [TestCase(101, 5000)]
-        [TestCase(150, 5000)]
+        [TestCase(0, 5)]
+        [TestCase(-1, 5)]
+        [TestCase(-100, 5)]
+        [TestCase(701, 5)]
+        [TestCase(750, 5)]
         public void StartCooking_WrongPower_ThrowArgumentOutOfRangeException(int power, int time)
         {
             Assert.Throws<System.ArgumentOutOfRangeException>(() => _tlm.StartCooking(power, time));
