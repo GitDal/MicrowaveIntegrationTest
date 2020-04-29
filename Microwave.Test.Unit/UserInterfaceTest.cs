@@ -318,8 +318,5 @@ namespace Microwave.Test.Unit
 
             light.Received(1).TurnOff();
         }
-
-
     }
-
 }
