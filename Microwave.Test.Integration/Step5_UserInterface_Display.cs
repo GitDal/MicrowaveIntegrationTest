@@ -41,15 +41,103 @@ namespace Microwave.Test.Integration
         }
 
         [Test]
-        public void ready_2PowerButton_PowerIs100()
+        public void Ready_DoorOpenClose_Ready_PowerIs50()
+        {
+            _door.Opened += Raise.EventWith(this, EventArgs.Empty);
+            _door.Closed += Raise.EventWith(this, EventArgs.Empty);
+
+            _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _output.Received(1).OutputLine(Arg.Is<string>("Display shows: 50 W"));
+        }
+
+        [Test]
+        public void Ready_2PowerButton_PowerIs100()
         {
             _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
             _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
-            _display.Received(1).ShowPower(Arg.Is<int>(100));
+            _output.Received(1).OutputLine(Arg.Is<string>("Display shows: 100 W"));
         }
 
+        [Test]
+        public void Ready_14PowerButton_PowerIs700()
+        {
+            for (int i = 1; i <= 14; i++)
+            {
+                _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            }
+            _output.Received(1).OutputLine(Arg.Is<string>("Display shows: 700 W"));
+        }
 
+        [Test]
+        public void Ready_15PowerButton_PowerIs50Again()
+        {
+            for (int i = 1; i <= 15; i++)
+            {
+                _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            }
+            _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _output.Received(2).OutputLine(Arg.Is<string>("Display shows: 50 W"));
+        }
 
+        [Test]
+        public void SetPower_CancelButton_DisplayCleared()
+        {
+            _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _startCancelButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+
+            _output.Received(1).OutputLine(Arg.Is<string>("Display cleared"));
+        }
+
+        
+        [Test]
+        public void SetPower_DoorOpened_DisplayCleared()
+        {
+            _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _door.Opened += Raise.EventWith(this, EventArgs.Empty);
+
+            _output.Received(1).OutputLine(Arg.Is<string>("Display cleared"));
+        }
+      
+        [Test]
+        public void SetPower_TimeButton_TimeIs1()
+        {
+            _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _timeButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+
+            _output.Received(1).OutputLine(Arg.Is<string>("Display shows: 01:00"));
+        }
+        
+        [Test]
+        public void SetPower_2TimeButton_TimeIs2()
+        {
+            _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _timeButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _timeButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+
+            _output.Received(1).OutputLine(Arg.Is<string>("Display shows: 02:00"));
+        }
+        
+        
+        [Test]
+        public void SetTime_DoorOpened_DisplayCleared()
+        {
+            _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _timeButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _door.Opened += Raise.EventWith(this, EventArgs.Empty);
+
+            _output.Received(1).OutputLine(Arg.Is<string>("Display cleared"));
+        }
+        
+
+        [Test]
+        public void Cooking_CookingIsDone_ClearDisplay()
+        {
+            _powerButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _timeButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            _startCancelButton.Pressed += Raise.EventWith(this, EventArgs.Empty);
+            
+            _tlm.CookingIsDone();
+            _output.Received(1).OutputLine(Arg.Is<string>("Display cleared"));
+        }
     }
-
 }
