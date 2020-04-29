@@ -174,7 +174,39 @@ namespace Microwave.Test.Integration
             Thread.Sleep(1500);
 
             _display.Received(1).ShowTime(Arg.Any<int>(), Arg.Any<int>());
+        }
+
+        [TestCase(50, 999)]
+        [TestCase(50, 500)]
+        [TestCase(50, 1)]
+        [TestCase(50, 0)]
+        [TestCase(50, -1)]
+        [TestCase(50, -1000)]
+        [TestCase(50, -2000)]
+
+        public void StartCooking_UnderOneSecond_PowerTubeTurnedOffOnce(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(1500);
+
             _powerTube.Received(1).TurnOff();
+        }
+
+        [TestCase(50, 999)]
+        [TestCase(50, 500)]
+        [TestCase(50, 1)]
+        [TestCase(50, 0)]
+        [TestCase(50, -1)]
+        [TestCase(50, -1000)]
+        [TestCase(50, -2000)]
+
+        public void StartCooking_UnderOneSecond_UICookingIsDoneOnce(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(1500);
+
             _ui.Received(1).CookingIsDone();
         }
 
