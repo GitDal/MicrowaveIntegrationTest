@@ -129,23 +129,35 @@ namespace Microwave.Test.Integration
             Thread.Sleep(time + 500);
 
             _display.Received(time/1000).ShowTime(Arg.Any<int>(), Arg.Any<int>());
-            _powerTube.Received(1).TurnOff();
-            _ui.Received(1).CookingIsDone();
         }
 
         [TestCase(50, 1000)]
         [TestCase(50, 2000)]
         [TestCase(50, 3000)]
 
-        public void StartCooking_TimeOneSecondOrLonger_(int power, int time)
+        public void StartCooking_TimeOneSecondOrLonger_PowerTubeTurnOffOnce(int power, int time)
         {
             _tlm.StartCooking(power, time);
 
             Thread.Sleep(time + 500);
 
             _powerTube.Received(1).TurnOff();
+        }
+
+
+        [TestCase(50, 1000)]
+        [TestCase(50, 2000)]
+        [TestCase(50, 3000)]
+
+        public void StartCooking_TimeOneSecondOrLonger_UICookingIsDoneOnce(int power, int time)
+        {
+            _tlm.StartCooking(power, time);
+
+            Thread.Sleep(time + 500);
+
             _ui.Received(1).CookingIsDone();
         }
+
 
         [TestCase(50, 999)]
         [TestCase(50, 500)]
@@ -166,14 +178,31 @@ namespace Microwave.Test.Integration
             _ui.Received(1).CookingIsDone();
         }
 
+        [Test]
+        public void StopCooking_AfterTwoSeconds_DisplayReceivedTwoCall()
+        {
+            _tlm.StartCooking(50, 3000);
+            
+            Thread.Sleep(2100);
+
+            _tlm.Stop();
+
+            _display.Received(2).ShowTime(Arg.Any<int>(),Arg.Any<int>());
+        }
+
+        [Test]
+        public void StopCooking_AfterTwoSeconds_PowerTubeTurnedOff()
+        {
+            _tlm.StartCooking(50, 3000);
+
+            Thread.Sleep(2100);
+
+            _tlm.Stop();
+
+            _powerTube.Received(1).TurnOff();
+        }
+
 
 
     }
 }
-
-/*
-[TestCase(50, 30)]
-[TestCase(50, 60)]
-[TestCase(50, 90)]
-[TestCase(50, 120)]
-[TestCase(50, 125)] */
